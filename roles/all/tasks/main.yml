@@ -17,7 +17,7 @@
        
      - name: Download do arquivo daemon.json
        get_url:
-         url: https://raw.githubusercontent.com/rafpcloud/k8s-the-hard-way/main/daemon.json
+         url: https://raw.githubusercontent.com/rafpcloud/lab-k8s-iac-cicd/main/daemon.json
          dest:  /etc/docker/daemon.json   
          mode: '0440'
          
