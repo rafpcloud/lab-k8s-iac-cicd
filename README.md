@@ -1,2 +1,2 @@
-# lab-k8s-iac-cicd
-Lab de IAC e CICD
+# k8s-the-hard-way
+IAC + k8s  

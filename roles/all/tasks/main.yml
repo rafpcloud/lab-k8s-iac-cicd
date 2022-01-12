@@ -1,0 +1,83 @@
+
+            
+     - name: Adiciona repositorio do k8s
+       yum_repository:
+         name: k8s
+         description: k8s repo 
+         file: k8s
+         baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+         gpgcheck: no
+         enabled: yes  
+
+     - name: Instala os pacotes do k8s 
+       yum:
+         name: ['kubelet', 'kubeadm', 'kubectl', 'docker', 'tc', 'libselinux-python' ]
+         state: present
+         update_cache: True    
+       
+     - name: Download do arquivo daemon.json
+       get_url:
+         url: https://raw.githubusercontent.com/rafpcloud/k8s-the-hard-way/main/daemon.json
+         dest:  /etc/docker/daemon.json   
+         mode: '0440'
+         
+    
+     - name: Cria o usurio k8sadm
+       user: name=k8sadm append=yes state=present createhome=yes shell=/bin/bash 
+
+     - name: Configura sudoers para o k8sadm
+       lineinfile:
+         dest: /etc/sudoers
+         line: 'k8sadm ALL=(ALL) NOPASSWD: ALL'
+         validate: 'visudo -cf %s'
+
+     - name: Configurar a troca de chaves entre nodes
+       authorized_key: user=k8sadm key="{{item}}"
+       with_file:
+         - ~/.ssh/id_rsa.pub
+
+     - name: Remove swap do arquivo /etc/fstab
+       mount:
+         name: ['swap']
+         fstype: swap
+         state: absent
+         
+     - name:  Desabilita o swap 
+       shell: swapoff -a           
+
+     - name: Desabilita o SELinux
+       selinux:
+         state: disabled         
+
+     - name: Carrega o  br_netfilter module
+       shell:  echo "br_netfilter" > /etc/modules-load.d/br_netfilter.conf  ;  sudo modprobe br_netfilter 
+  
+     - name:  bridge 
+       sysctl:
+         name: "{{ item }}"
+         value: '1'
+         state: present
+       with_items:
+         - net.bridge.bridge-nf-call-ip6tables
+         - net.bridge.bridge-nf-call-iptables         
+     
+     
+     - name: Reload do sysctl
+       shell:  sysctl --system       
+
+     - name: Reload do systemd
+       systemd:
+         daemon_reload: yes      
+        
+     - name: Habilita os servicos  Docker e Kubelet
+       systemd:
+         name: "{{ item }}"
+         state: started
+         enabled: yes 
+       with_items:
+         - kubelet
+         - docker       
+
+
+
+
