@@ -1,2 +1,7 @@
-# k8s-the-hard-way
-IAC + k8s  
+Projeto de LAB IAC utilizando:
+
+- AWS
+- Terraform: 
+- Ansible: 
+- Inventario dinamico do Ansible
+- Kubernetes
